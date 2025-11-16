@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Free YouTube Title Generator (No API Needed)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #0f172a 0, #020617 42%, #000 100%);
+      color: #e5e7eb;
+    }
+    .wrapper {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
+    .card {
+      border-radius: 18px;
+      padding: 22px 18px 20px;
+      background: linear-gradient(145deg, rgba(15,23,42,0.96), rgba(3,7,18,0.98));
+      border: 1px solid rgba(148,163,184,0.35);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.55);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 24px;
+      letter-spacing: 0.02em;
+    }
+    .subtitle {
+      margin: 0 0 14px;
+      font-size: 13px;
+      color: #9ca3af;
+      line-height: 1.5;
+    }
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.4);
+      background: rgba(15,23,42,0.9);
+      color: #e5e7eb;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 10px 0 4px;
+      color: #e5e7eb;
+    }
+    .hint {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 9px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: #020617;
+      color: #f9fafb;
+      font-size: 13px;
+      outline: none;
+      transition: border 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    }
+    input::placeholder,
+    textarea::placeholder { color: #6b7280; }
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #22c55e;
+      box-shadow: 0 0 0 1px rgba(34,197,94,0.35);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+      max-height: 180px;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .row > div {
+      flex: 1;
+      min-width: 130px;
+    }
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+      align-items: center;
+    }
+    button {
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.08s ease, box-shadow 0.1s ease, background 0.1s ease;
+    }
+    button:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: none;
+    }
+    #generateBtn {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      box-shadow: 0 10px 26px rgba(22,163,74,0.4);
+    }
+    #shuffleBtn {
+      background: rgba(15,23,42,0.95);
+      color: #e5e7eb;
+      border: 1px solid rgba(148,163,184,0.55);
+    }
+    #copyAllBtn {
+      background: rgba(15,23,42,0.95);
+      color: #e5e7eb;
+      border: 1px solid rgba(148,163,184,0.55);
+    }
+    .status {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #a5b4fc;
+      min-height: 18px;
+    }
+    .status.error { color: #fecaca; }
+    .status.ok { color: #bbf7d0; }
+    .results-card {
+      margin-top: 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(55,65,81,0.95);
+      background: radial-gradient(circle at top left, rgba(15,23,42,0.98), #020617);
+      max-height: 420px;
+      overflow: hidden;
+      display: none;
+      flex-direction: column;
+    }
+    .results-header {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(55,65,81,0.95);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .results-list {
+      padding: 4px 0;
+      overflow-y: auto;
+    }
+    .title-item {
+      padding: 8px 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      border-bottom: 1px solid rgba(31,41,55,0.85);
+    }
+    .title-index {
+      font-size: 11px;
+      color: #6b7280;
+      width: 20px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .title-text {
+      font-size: 13px;
+      color: #e5e7eb;
+      flex: 1;
+    }
+    .copy-btn {
+      font-size: 11px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      background: rgba(15,23,42,0.95);
+      color: #e5e7eb;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .small-note {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+    @media (max-width: 640px) {
+      .card { padding: 18px 14px; }
+      h1 { font-size: 20px; }
+      .results-card { max-height: 360px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <h1>Free YouTube Title Generator</h1>
+      <p class="subtitle">
+        Zero cost, zero API. Bas apna idea likho aur human-style, clicky titles ke ready-made ideas le lo.
+      </p>
+
+      <div class="badge-row">
+        <div class="badge">💸 100% Free – No API Key</div>
+        <div class="badge">🎯 Human-Style Patterns</div>
+        <div class="badge">🔥 Hooks • Curiosity • Benefits</div>
+      </div>
+
+      <label for="topic">Your topic / niche / rough title</label>
+      <div class="hint">
+        Example: online earning in Pakistan • gym transformation • study tips for students
+      </div>
+      <input
+        type="text"
+        id="topic"
+        placeholder="Type your main topic or rough idea here..."
+      />
+
+      <div class="row">
+        <div>
+          <label for="count">Number of titles</label>
+          <input type="number" id="count" min="1" max="40" value="12" />
+        </div>
+        <div>
+          <label for="languageStyle">Language style</label>
+          <select id="languageStyle">
+            <option value="urdu-mix">Urdu + English mix</option>
+            <option value="english">Simple English</option>
+            <option value="urdu">Mostly Urdu (roman)</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="extraNotes">Angle / vibe (optional)</label>
+      <div class="hint">
+        Example: focus on mistakes, target beginners, make it motivational, realistic earning, no scam.
+      </div>
+      <textarea
+        id="extraNotes"
+        placeholder="Kis angle se title chahiye? Mistakes, secret, guide, motivation, results, etc."
+      ></textarea>
+
+      <div class="btn-row">
+        <button id="generateBtn">⚡ Generate Titles</button>
+        <button id="shuffleBtn">🎲 Shuffle New Set</button>
+        <button id="copyAllBtn">📋 Copy All</button>
+        <div id="status" class="status"></div>
+      </div>
+
+      <div id="results" class="results-card">
+        <div class="results-header">
+          <span id="resultsCount">0 titles</span>
+          <span>Tap “Copy” to grab any title</span>
+        </div>
+        <div id="resultsList" class="results-list"></div>
+      </div>
+
+      <div class="small-note">
+        Note: Yeh tool smart patterns aur hooks use karta hai (AI API nahi). Idea strong hoga to titles bhi powerful aayenge.
+        Zarurat ho to thora sa manual edit karke perfect bana sakte ho.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Random helper
+    function pick(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function capitaliseFirst(text) {
+      if (!text) return "";
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    }
+
+    function cleanTopic(raw) {
+      let t = raw.trim();
+      // remove ending punctuation
+      t = t.replace(/[?!\.]+$/, "");
+      return t;
+    }
+
+    function buildPatternsEnglish(topic, vibe) {
+      const t = capitaliseFirst(topic);
+
+      const hooksGeneral = [
+        "No One Tells You About",
+        "You Wish You Knew Earlier",
+        "That Actually Work",
+        "Beginners Keep Ignoring",
+        "You Can Start Today",
+        "Most People Do Wrong",
+        "That Changed My Life",
+        "Before You Start",
+        "You Must Avoid",
+        "Nobody Explains Properly"
+      ];
+
+      const benefits = [
+        "Fast Results",
+        "On a Small Budget",
+        "Without Any Experience",
+        "Even If You’re a Beginner",
+        "From Your Home",
+        "Without Investing a Lot",
+        "Step by Step",
+        "The Right Way",
+        "In Simple Words"
+      ];
+
+      const intros = [
+        "The Truth About " + t,
+        "Beginner’s Guide to " + t,
+        "How to Start " + t,
+        "Stop Doing " + t + " Wrong",
+        "Before You Try " + t,
+        "Real Story of " + t,
+        "Complete Roadmap for " + t,
+        "What No One Tells You About " + t,
+        "Smart Way to Do " + t,
+        "Secret Behind " + t
+      ];
+
+      const frames = [
+        () => `${intros[0]} (${pick(hooksGeneral)})`,
+        () => `${intros[1]} – ${pick(benefits)}`,
+        () => `${t}: ${pick(hooksGeneral)}`,
+        () => `New To ${t}? Watch This First`,
+        () => `${t} – ${pick(benefits)}`,
+        () => `Stop Doing This in ${t} (${pick(hooksGeneral)})`,
+        () => `${t} Explained in 10 Minutes`,
+        () => `${t} For Complete Beginners`,
+        () => `${t}: My Honest Experience & Results`,
+        () => `${t} – Simple Breakdown for You`
+      ];
+
+      if (vibe.includes("mistake")) {
+        frames.push(
+          () => `${t}: Biggest Mistakes Beginners Make`,
+          () => `Avoid These Mistakes in ${t}`,
+          () => `Top 5 ${t} Mistakes Ruining Your Results`
+        );
+      }
+      if (vibe.includes("motivat")) {
+        frames.push(
+          () => `${t} – You Can Still Start Today`,
+          () => `${t}: From Zero to Progress`,
+          () => `Why You Should Start ${t} in 2025`
+        );
+      }
+      if (vibe.includes("secret")) {
+        frames.push(
+          () => `Hidden Secrets of ${t} Revealed`,
+          () => `The Side of ${t} Nobody Shows`,
+          () => `${t}: Real Insider Tips`
+        );
+      }
+
+      return frames;
+    }
+
+    function buildPatternsUrduMix(topic, vibe) {
+      const t = cleanTopic(topic);
+
+      const hooksGeneral = [
+        "jo kisi ne clear nahi bataye",
+        "jo tumhein pehle pata hone chahiye the",
+        "jo har beginner galat karta hai",
+        "jisse result real me aate hain",
+        "jo log tum se chupate hain",
+        "jo tumhein time aur paisa dono bachayega",
+        "jo tumhein zero se utha sakta hai",
+        "jo sirf thumbnails me nahi, real life me kaam karte hain"
+      ];
+
+      const starters = [
+        t + " ka sach",
+        "Real baat " + t + " ke bare me",
+        t + " full guide",
+        t + " shuru karne ka sahi tareeqa",
+        "Zero se " + t + " tak",
+        t + " step by step",
+        "Meri honest story " + t + " ke sath"
+      ];
+
+      const callouts = [
+        "beginner ke liye",
+        "bina jhoot, bina overhype",
+        "ghar baithe",
+        "students ke liye perfect",
+        "job ke sath sath",
+        "bina heavy investment",
+        "practical tareeqa"
+      ];
+
+      const frames = [
+        () => `${starters[0]} | ${pick(hooksGeneral)}`,
+        () => `${starters[3]} | ${pick(callouts)}`,
+        () => `${t} ka easy roadmap | ${pick(callouts)}`,
+        () => `${t} shuru karne se pehle yeh dekh lo`,
+        () => `${t} – jo main khud use karta hoon`,
+        () => `${t} realistic guide | ${pick(callouts)}`,
+        () => `${t} se earning ka real scene`,
+        () => `${t} complete breakdown in simple words`,
+        () => `${t} | full honest review & guide`
+      ];
+
+      if (vibe.includes("mistake")) {
+        frames.push(
+          () => `${t} me log sab se zyada yahi galti karte hain`,
+          () => `${t} ke 5 aise mistakes jo result kharab kar dete hain`,
+          () => `${t} start karte waqt yeh 3 galtiyan mat karna`
+        );
+      }
+      if (vibe.includes("motivat")) {
+        frames.push(
+          () => `Agar tum ${t} shuru nahi kar rahe to yeh video tumhare liye hai`,
+          () => `${t} – late nahi hua, abhi bhi time hai`,
+          () => `${t} – main ne bhi bilkul zero se start kiya`
+        );
+      }
+      if (vibe.includes("secret")) {
+        frames.push(
+          () => `${t} ke woh secrets jo koi open nahi karta`,
+          () => `${t} ka asli formula jo thumbnails me nahi milta`,
+          () => `${t} – real behind the scenes`
+        );
+      }
+
+      return frames;
+    }
+
+    function buildPatternsUrdu(topic, vibe) {
+      const t = cleanTopic(topic);
+
+      const starters = [
+        t + " ka asan tareeqa",
+        t + " ka complete course",
+        t + " ka full scene",
+        "Zero se " + t + " seekho",
+        t + " ka step by step plan",
+        t + " se kamai ka real tareeqa"
+      ];
+
+      const hooks = [
+        "ghareeb logon ke liye bhi",
+        "students ke liye perfect",
+        "jo main khud follow karta hoon",
+        "bina jhoot aur drama",
+        "sahi information, seedhi baat",
+        "ghar baithe baithe"
+      ];
+
+      const frames = [
+        () => `${starters[0]} | ${pick(hooks)}`,
+        () => `${starters[3]} | ${pick(hooks)}`,
+        () => `${t} ke bare me log jhoot kya bolte hain`,
+        () => `${t} shuru karne ka waqt abhi kyun best hai`,
+        () => `${t} – simple lafzon me poori samajh`,
+        () => `${t} ka full roadmap ek hi video me`,
+        () => `${t} – sirf serious logon ke liye`
+      ];
+
+      if (vibe.includes("mistake")) {
+        frames.push(
+          () => `${t} me log ye 3 ghaltiyan roz karte hain`,
+          () => `${t} karte waqt yeh ghalti mat karna`,
+          () => `${t} – ghaltiyan jo tumhein peeche rakh rahi hain`
+        );
+      }
+
+      return frames;
+    }
+
+    function generateTitleSet(topic, count, languageStyle, extraNotes) {
+      const vibe = (extraNotes || "").toLowerCase();
+      let frames;
+
+      if (languageStyle === "english") {
+        frames = buildPatternsEnglish(topic, vibe);
+      } else if (languageStyle === "urdu") {
+        frames = buildPatternsUrdu(topic, vibe);
+      } else {
+        frames = buildPatternsUrduMix(topic, vibe);
+      }
+
+      const max = Math.min(count, 40);
+      const out = new Set();
+      let safety = 0;
+
+      while (out.size < max && safety < max * 10) {
+        const f = pick(frames);
+        const title = f().trim();
+        if (title && !out.has(title)) {
+          out.add(title);
+        }
+        safety++;
+      }
+
+      return Array.from(out);
+    }
+
+    function renderTitles(titles) {
+      const resultsCard = document.getElementById("results");
+      const resultsList = document.getElementById("resultsList");
+      const resultsCount = document.getElementById("resultsCount");
+
+      resultsList.innerHTML = "";
+      resultsCard.style.display = titles.length ? "flex" : "none";
+      resultsCount.textContent = titles.length + " titles";
+
+      titles.forEach((title, index) => {
+        const item = document.createElement("div");
+        item.className = "title-item";
+
+        const idx = document.createElement("div");
+        idx.className = "title-index";
+        idx.textContent = String(index + 1).padStart(2, "0");
+
+        const textDiv = document.createElement("div");
+        textDiv.className = "title-text";
+        textDiv.textContent = title;
+
+        const btn = document.createElement("button");
+        btn.className = "copy-btn";
+        btn.textContent = "Copy";
+        btn.addEventListener("click", () => {
+          navigator.clipboard.writeText(title);
+          const status = document.getElementById("status");
+          status.textContent = '✅ Copied: "' + (title.length > 32 ? title.slice(0, 29) + "..." : title) + '"';
+          status.className = "status ok";
+        });
+
+        item.appendChild(idx);
+        item.appendChild(textDiv);
+        item.appendChild(btn);
+        resultsList.appendChild(item);
+      });
+    }
+
+    function handleGenerate(fromShuffle = false) {
+      const topicInput = document.getElementById("topic");
+      const topicRaw = topicInput.value;
+      const countRaw = document.getElementById("count").value;
+      const languageStyle = document.getElementById("languageStyle").value;
+      const extraNotes = document.getElementById("extraNotes").value;
+      const status = document.getElementById("status");
+
+      status.textContent = "";
+      status.className = "status";
+
+      const topic = cleanTopic(topicRaw);
+      if (!topic) {
+        status.textContent = "⚠️ Pehle apna topic / idea likho.";
+        status.classList.add("error");
+        topicInput.focus();
+        return;
+      }
+
+      let count = parseInt(countRaw, 10);
+      if (isNaN(count) || count < 1) count = 10;
+      if (count > 40) count = 40;
+
+      const titles = generateTitleSet(topic, count, languageStyle, extraNotes);
+      renderTitles(titles);
+
+      if (fromShuffle) {
+        status.textContent = "🎲 New shuffled titles ready.";
+      } else {
+        status.textContent = "✅ Titles ready – thora sa edit karke perfect kar sakte ho.";
+      }
+      status.className = "status ok";
+    }
+
+    function copyAllTitles() {
+      const status = document.getElementById("status");
+      const resultsList = document.getElementById("resultsList");
+      const texts = Array.from(resultsList.querySelectorAll(".title-text")).map(el =>
+        el.textContent.trim()
+      );
+      if (!texts.length) {
+        status.textContent = "⚠️ Pehle titles generate karo, phir copy all use karo.";
+        status.classList.add("error");
+        return;
+      }
+      const joined = texts.join("\n");
+      navigator.clipboard.writeText(joined);
+      status.textContent = "📋 Saare titles clipboard par copy ho gaye.";
+      status.className = "status ok";
+    }
+
+    document.getElementById("generateBtn").addEventListener("click", () => handleGenerate(false));
+    document.getElementById("shuffleBtn").addEventListener("click", () => handleGenerate(true));
+    document.getElementById("copyAllBtn").addEventListener("click", copyAllTitles);
+
+    document.getElementById("topic").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleGenerate(false);
+      }
+    });
+  </script>
+</body>
+</html>
